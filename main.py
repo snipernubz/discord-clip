@@ -101,10 +101,10 @@ async def modal_response(ctx, response: str):
 
 # real commmands  
 
-def convert_sec(int(sec)):
-  """Get time from seconds"""
-  td = timedelta(seconds = sec)
-  return str(td)
+def convert_sec(sec):
+    """Get time from seconds"""
+    td = timedelta(seconds = sec)
+    return str(td)
   
 def convert_hms(time_str):
     """Get seconds from time."""
@@ -120,7 +120,8 @@ async def make(ctx: interactions.CommandContext):
 
 
 #make gif command
-gif_info = []
+
+gif_info = {}
 
 @make.subcommand()
 @interactions.option()
@@ -135,9 +136,12 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
     # check video avalability
     video.check_availability()
     
-  
     print(f"Video title: '{video.title}' video has length of '{video.length}' seconds") 
 
+    # add video info to gif_info 
+    gif_info["video link"] = video_url
+    gif_info["video title"] = video.title
+    gif_info["video length"] = convert_sec(video.length)
     
     
     # make gif start modal
@@ -152,37 +156,85 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
         )],
     )
     
+    # make gif end modal
+    gif_end_modal = interactions.Modal(
+        title="Make a gif",
+        custom_id="gif_end",
+        components=[interactions.TextInput(
+            style=interactions.TextStyleType.SHORT,
+            label="end time (format HH:MM:SS)",
+            custom_id="gif_end_time",
+            min_length=1,
+            max_length=10,
+        )],
+    )
+    
     # send start modal
     await ctx.popup(gif_start_modal)
+    await ctx.popup(gif_end_modal)
 
 @bot.modal("gif_start")
 async def modal_response(ctx, start_time: str):
   
-  gif_info.append(start_time)
+  gif_info["start time"] = start_time
   
+  # end_label = str(f'end time (format HH:MM:SS) max: {gif_info.get("video length")} ')
+  
+  await ctx.send(f"pog {start_time}")
+  '''
   # make gif end modal
   gif_end_modal = interactions.Modal(
-    title="Make a gif",
-    custom_id="gif_end",
-    components=[interactions.TextInput(
-      style=interactions.TextStyleType.SHORT,
-      label="end time (format HH:MM:SS)",
-      custom_id="gif_end_time",
-      min_length=1,
-      )],
+        title="Make a gif",
+        custom_id="gif_end",
+        components=[interactions.TextInput(
+            style=interactions.TextStyleType.SHORT,
+            label="end time (format HH:MM:SS)",
+            custom_id="gif_end_time",
+            min_length=1,
+            max_length=10,
+        )],
     )
-    
-    await ctx.popup(gif_end_modal)
+  
+  await ctx.popup(gif_end_modal)
+    '''
    
 @bot.modal("gif_end")
 async def modal_response(ctx, end_time: str):
+    
   
-  gif_info.append(end_time)
+  gif_info["end time"] = end_time
   
+  await ctx.send(f"poggers {end_time}")
+  
+  '''
   #make gif_info embed
+  embed = discord.Embed(title='Confirm Options', description='Are these correct?')
+  for x, y in gif_info.items():
+      embed.add_field(name=str(x) , value=str(y), inline=False)
+   
+  #create y/n buttons
+  ybutton = interactions.Button(
+      style=interactions.ButtonStyle.SUCCESS,
+      label="Yes",
+      custom_id="good_confirm",
+  )
+  
+  nbutton = interactions.Button(
+      style=interactions.ButtonStyle.DANGER,
+      label="No",
+      custom_id="bad_confirm",
+  )
+  
+  row = interactions.ActionRow.new(ybutton, nbutton)
+  
+  # send embed and buttons
+  await ctx.send(embeds=embed, components=row)
+  '''
   
   
-      
+  
+
+
 @gif.error
 async def gif_error(ctx: interactions.CommandContext, error: Exception):
     print(f"ERROR: {error}")
