@@ -62,10 +62,24 @@ async def button_response(ctx):
 async def button2_response(ctx):
     await ctx.send("aww bye bye user :(", ephemeral=True)
 
+@bot.command()
+async def model_test(ctx):
+    modal = interactions.Modal(
+        title="model test",
+        custom_id="cringey",
+        components=[interactions.TextInput(...)],
+    )
+
+    await ctx.popup(modal)
+ 
+@bot.modal("cringey")
+async def modal_response(ctx, response: str):
+    await ctx.send(f"You wrote: {response}", ephemeral=True)
+
 # real commmands  
 
 
-
+"""
 @bot.command(
     name="make",
     description="makes a clip from a youtube video",
@@ -97,7 +111,7 @@ async def auto_make(ctx, typ: str = ""):
 async def make(ctx: interactions.CommandContext, typ: str, link: str):
     
     await ctx.send(f"you chose {link} to be made into {typ}")
-
+"""
 
 
 
