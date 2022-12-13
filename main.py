@@ -2,6 +2,7 @@ import json
 import interactions
 import moviepy
 from pytube import YouTube
+from datetime import timedelta
 import tracemalloc
 
 tracemalloc.start()
@@ -100,6 +101,17 @@ async def modal_response(ctx, response: str):
 
 # real commmands  
 
+def convert_sec(int(sec)):
+  """Get time from seconds"""
+  td = timedelta(seconds = sec)
+  return str(td)
+  
+def convert_hms(time_str):
+    """Get seconds from time."""
+    h, m, s = time_str.split(':')
+    return int(h) * 3600 + int(m) * 60 + int(s)
+
+
 # make command
 @bot.command()
 async def make(ctx: interactions.CommandContext):
@@ -108,6 +120,8 @@ async def make(ctx: interactions.CommandContext):
 
 
 #make gif command
+gif_info = []
+
 @make.subcommand()
 @interactions.option()
 async def gif(ctx: interactions.CommandContext, gif_link: str):
@@ -126,8 +140,8 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
 
     
     
-    # make gif modal
-    gif_modal = interactions.Modal(
+    # make gif start modal
+    gif_start_modal = interactions.Modal(
         title="Make a gif",
         custom_id="gif_start",
         components=[interactions.TextInput(
@@ -138,9 +152,37 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
         )],
     )
     
-    # send modal
-    await ctx.popup(gif_modal)
+    # send start modal
+    await ctx.popup(gif_start_modal)
 
+@bot.modal("gif_start")
+async def modal_response(ctx, start_time: str):
+  
+  gif_info.append(start_time)
+  
+  # make gif end modal
+  gif_end_modal = interactions.Modal(
+    title="Make a gif",
+    custom_id="gif_end",
+    components=[interactions.TextInput(
+      style=interactions.TextStyleType.SHORT,
+      label="end time (format HH:MM:SS)",
+      custom_id="gif_end_time",
+      min_length=1,
+      )],
+    )
+    
+    await ctx.popup(gif_end_modal)
+   
+@bot.modal("gif_end")
+async def modal_response(ctx, end_time: str):
+  
+  gif_info.append(end_time)
+  
+  #make gif_info embed
+  
+  
+      
 @gif.error
 async def gif_error(ctx: interactions.CommandContext, error: Exception):
     print(f"ERROR: {error}")
