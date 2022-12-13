@@ -1,8 +1,10 @@
-importimport json
+import json
 import interactions
 import moviepy
 from pytube import YouTube
+import tracemalloc
 
+tracemalloc.start()
 
 with open('config.json', 'r') as configfile:
     config = json.load(configfile)
@@ -18,7 +20,7 @@ bot = interactions.Client(
 async def on_start():
     print("Bot started")
 
-# testing commands
+# test commands
 
 
 @bot.command()
@@ -32,7 +34,22 @@ async def relay(ctx: interactions.CommandContext, text: str):
     """relay what u say"""
     await ctx.send(f"You said '{text}'!")
     
-    
+@bot.command()
+async def base_sub_test(ctx: interactions.CommandContext):
+    """This description isn't seen in UI (yet?)"""
+    pass
+
+@base_sub_test.subcommand()
+@interactions.option()
+async def sub_uno(ctx: interactions.CommandContext, option: int = None):
+    """first sub"""
+    await ctx.send(f"You selected the command_name sub command and put in {option}")
+
+@base_sub_test.subcommand()
+@interactions.option()
+async def sub_dos(ctx: interactions.CommandContext, second_option: str):
+    """second sub"""
+    await ctx.send(f"You selected the second_command sub command and put in {second_option}")
  
 button = interactions.Button(
     style=interactions.ButtonStyle.PRIMARY,
@@ -46,8 +63,6 @@ button2 = interactions.Button(
 )
 
 row = interactions.ActionRow.new(button, button2)
-
-
 
 @bot.command()
 async def button_test(ctx):
@@ -63,55 +78,88 @@ async def button2_response(ctx):
     await ctx.send("aww bye bye user :(", ephemeral=True)
 
 @bot.command()
-async def model_test(ctx):
+async def modal_test(ctx):
+    """model test command"""
     modal = interactions.Modal(
-        title="model test",
-        custom_id="cringey",
-        components=[interactions.TextInput(...)],
+        title="Test Model",
+        custom_id="mod_form",
+        components=[interactions.TextInput(
+            style=interactions.TextStyleType.SHORT,
+            label="Let's get straight to it: what's 1 + 1?",
+            custom_id="text_input_response",
+            min_length=2,
+            max_length=3,
+            )],
     )
 
     await ctx.popup(modal)
  
-@bot.modal("cringey")
+@bot.modal("mod_form")
 async def modal_response(ctx, response: str):
     await ctx.send(f"You wrote: {response}", ephemeral=True)
 
 # real commmands  
 
-
-"""
-@bot.command(
-    name="make",
-    description="makes a clip from a youtube video",
-    options=[
-    interactions.Option(
-        name="typ",
-        description="what do you want to do",
-        type=interactions.OptionType.STRING,
-        autocomplete=True,
-        required=True
-    ),
-    interactions.Option(
-        name="link",
-        description="Link to youtube video",
-        type=interactions.OptionType.STRING,
-        required=True,
-    )
-])
+# make command
+@bot.command()
+async def make(ctx: interactions.CommandContext):
+    """make command"""
+    pass
 
 
-  
-@bot.autocomplete(command="make", name="typ")
-async def auto_make(ctx, typ: str = ""):
-        await ctx.populate([
-            interactions.Choice(name= "webm :(",value ="webm"),
-            interactions.Choice(name= "gif :(",value ="gif"),
-        ])
-
-async def make(ctx: interactions.CommandContext, typ: str, link: str):
+#make gif command
+@make.subcommand()
+@interactions.option()
+async def gif(ctx: interactions.CommandContext, gif_link: str):
+    """Make a gif from a video"""
     
-    await ctx.send(f"you chose {link} to be made into {typ}")
-"""
+    print(f"Link: {gif_link}")
+    
+    video_url = str(gif_link)
+    video = YouTube(video_url)
+    
+    # check video avalability
+    video.check_availability()
+    
+  
+    print(f"Video title: '{video.title}' video has length of '{video.length}' seconds") 
+
+    
+    
+    # make gif modal
+    gif_modal = interactions.Modal(
+        title="Make a gif",
+        custom_id="gif_start",
+        components=[interactions.TextInput(
+            style=interactions.TextStyleType.SHORT,
+            label="start time (format HH:MM:SS)",
+            custom_id="gif_start_time",
+            min_length=1,
+        )],
+    )
+    
+    # send modal
+    await ctx.popup(gif_modal)
+
+@gif.error
+async def gif_error(ctx: interactions.CommandContext, error: Exception):
+    print(f"ERROR: {error}")
+    await ctx.send(f"ERROR: {error}")
+    
+    
+
+
+@make.subcommand()
+@interactions.option()
+async def webm(ctx: interactions.CommandContext, webm_link: str):
+    """make a webm from video"""
+    await ctx.send(f"You selected the make webm sub command and chose video {webm_link}")
+
+    webm_modal = interactions.Modal(
+        title="Make a webm",
+        custom_id="webm_model",
+        components=[interactions.TextInput(...)],
+    )
 
 
 
