@@ -156,22 +156,8 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
         )],
     )
     
-    # make gif end modal
-    gif_end_modal = interactions.Modal(
-        title="Make a gif",
-        custom_id="gif_end",
-        components=[interactions.TextInput(
-            style=interactions.TextStyleType.SHORT,
-            label="end time (format HH:MM:SS)",
-            custom_id="gif_end_time",
-            min_length=1,
-            max_length=10,
-        )],
-    )
-    
     # send start modal
     await ctx.popup(gif_start_modal)
-    await ctx.popup(gif_end_modal)
 
 @bot.modal("gif_start")
 async def modal_response(ctx, start_time: str):
@@ -180,8 +166,8 @@ async def modal_response(ctx, start_time: str):
   
   # end_label = str(f'end time (format HH:MM:SS) max: {gif_info.get("video length")} ')
   
-  await ctx.send(f"pog {start_time}")
-  '''
+  # await ctx.send(f"pog {start_time}")
+  
   # make gif end modal
   gif_end_modal = interactions.Modal(
         title="Make a gif",
@@ -196,7 +182,6 @@ async def modal_response(ctx, start_time: str):
     )
   
   await ctx.popup(gif_end_modal)
-    '''
    
 @bot.modal("gif_end")
 async def modal_response(ctx, end_time: str):
