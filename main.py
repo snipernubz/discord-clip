@@ -23,11 +23,10 @@ async def on_start():
 
 # test commands
 
-
 @bot.command()
 async def pog(ctx: interactions.CommandContext):
     """basic ping command"""
-    await  ctx.send(f"Ping! {bot.latency}ms")
+    await ctx.send(f"Ping! {bot.latency}ms")
 
 @bot.command()
 @interactions.option()
@@ -90,7 +89,7 @@ async def modal_test(ctx):
             custom_id="text_input_response",
             min_length=2,
             max_length=3,
-            )],
+                )],
     )
 
     await ctx.popup(modal)
@@ -98,6 +97,31 @@ async def modal_test(ctx):
 @bot.modal("mod_form")
 async def modal_response(ctx, response: str):
     await ctx.send(f"You wrote: {response}", ephemeral=True)
+    
+@bot.command()
+async def dual_modal_test(ctx):
+    """dual modal test command"""
+    dual_modal = interactions.Modal(
+        title="Poggers",
+        custom_id="dual_modal",
+        components=[interactions.TextInput(
+            style=interactions.TextStyleType.SHORT,
+            label="1st input",
+            custom_id="first_input",
+        ),
+        interactions.TextInput(
+            style=interactions.TextStyleType.SHORT,
+            label="2nd input",
+            custom_id="sec_input",
+        )],
+    )
+
+    await ctx.popup(dual_modal)
+
+@bot.modal("dual_modal")
+async def dual_modal_res(ctx, uno: str, sec: str):
+    print(f"first input: {uno}, second input: {sec}")   
+    await ctx.send(f"first input: {uno}, second input: {sec}")        
 
 # real commmands  
 
@@ -112,7 +136,37 @@ def convert_hms(time_str):
     return int(h) * 3600 + int(m) * 60 + int(s)
 
 
+# create continue/abort buttons
+def create_con_btn(inputid):
+    fixedid = str(inputid)
+    con_button = interactions.Button(
+        style=interactions.ButtonStyle.SUCCESS,
+        label="Continue",
+        custom_id=fixedid,
+    )
+  
+    abr_button = interactions.Button(
+        style=interactions.ButtonStyle.DANGER,
+        label="ABORT",
+        custom_id="abort",
+    )
+    
+    
+    con_abr_row = interactions.ActionRow.new(con_button, abr_button)
+ 
+@bot.component("abort")
+async def button2_response(ctx):
+    await ctx.send("You chose to abort")
+    return StopCommand
+
+
+    
+    
+
+
 # make command
+
+
 @bot.command()
 async def make(ctx: interactions.CommandContext):
     """make command"""
@@ -127,6 +181,7 @@ gif_info = {}
 @interactions.option()
 async def gif(ctx: interactions.CommandContext, gif_link: str):
     """Make a gif from a video"""
+    
     
     print(f"Link: {gif_link}")
     
@@ -153,36 +208,50 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
             label="start time (format HH:MM:SS)",
             custom_id="gif_start_time",
             min_length=1,
+            max_length=8,
         )],
     )
     
     # send start modal
     await ctx.popup(gif_start_modal)
 
+
+
 @bot.modal("gif_start")
 async def modal_response(ctx, start_time: str):
   
-  gif_info["start time"] = start_time
   
-  # end_label = str(f'end time (format HH:MM:SS) max: {gif_info.get("video length")} ')
+  gif_info["start time"] = start_time
   
   # await ctx.send(f"pog {start_time}")
   
-  # make gif end modal
-  gif_end_modal = interactions.Modal(
-        title="Make a gif",
-        custom_id="gif_end",
-        components=[interactions.TextInput(
-            style=interactions.TextStyleType.SHORT,
-            label="end time (format HH:MM:SS)",
-            custom_id="gif_end_time",
-            min_length=1,
-            max_length=10,
-        )],
-    )
+  create_con_btn("gif_start_con")
   
-  await ctx.popup(gif_end_modal)
-   
+  
+
+@bot.component("gif_start_con")
+async def con_res(ctx):
+    # make gif end modal
+    
+    # end_label = str(f'end time (format HH:MM:SS) max: {gif_info.get("video length")} ')
+    
+    gif_end_modal = interactions.Modal(
+            title="Make a gif",
+            custom_id="gif_end",
+            components=[interactions.TextInput(
+                style=interactions.TextStyleType.SHORT,
+                label="end time (format HH:MM:SS)",
+                custom_id="gif_end_time",
+                min_length=1,
+                max_length=10,
+            )],
+        )
+    
+    await ctx.popup(gif_end)
+    
+    
+    
+  
 @bot.modal("gif_end")
 async def modal_response(ctx, end_time: str):
     
