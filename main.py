@@ -80,15 +80,16 @@ async def button2_response(ctx):
 @bot.command()
 async def modal_test(ctx):
     """model test command"""
+    
     modal = interactions.Modal(
         title="Test Model",
         custom_id="mod_form",
         components=[interactions.TextInput(
             style=interactions.TextStyleType.SHORT,
-            label="Let's get straight to it: what's 1 + 1?",
+            label=" Let's get straight to it: what's 1 + 1? HINT: its 2 jk its 5 dumbass",
             custom_id="text_input_response",
             min_length=2,
-            max_length=3,
+            max_length=10,
                 )],
     )
 
@@ -122,7 +123,34 @@ async def dual_modal_test(ctx):
 async def dual_modal_res(ctx, uno: str, sec: str):
     print(f"first input: {uno}, second input: {sec}")   
     await ctx.send(f"first input: {uno}, second input: {sec}")        
+    
+    
+@bot.command()
+async def select_test(ctx):
+    """ Select Menu Test """
+    Menu = interactions.SelectMenu(
+        options=[
+            interactions.SelectOption(
+                label="opt 1",
+                value="poggers",
+                description="pogging",
+            ),
+            interactions.SelectOption(
+                label="opt 2",
+                value="memeing",
+                description="we memeing",
+            )
+        ],
+        placeholder="Check out these things",
+        custom_id="select_test",
+    )
+    
+    await ctx.send("**Choose!**", components=Menu)
 
+@bot.component("select_test")
+async def select_res(ctx, res: str):
+    await ctx.edit(f"You chose {str(res)} from the SelectMenu", components="")
+    
 # real commmands  
 
 def convert_sec(sec):
@@ -153,15 +181,13 @@ def create_con_btn(inputid):
     
     
     con_abr_row = interactions.ActionRow.new(con_button, abr_button)
+    return con_abr_row
  
 @bot.component("abort")
 async def button2_response(ctx):
     await ctx.send("You chose to abort")
-    return StopCommand
-
-
     
-    
+
 
 
 # make command
@@ -175,7 +201,7 @@ async def make(ctx: interactions.CommandContext):
 
 #make gif command
 
-gif_info = {}
+vid_info = {}
 
 @make.subcommand()
 @interactions.option()
@@ -186,22 +212,23 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
     print(f"Link: {gif_link}")
     
     video_url = str(gif_link)
-    video = YouTube(video_url)
+    global videoobj 
+    videoobj = YouTube(video_url)
     
     # check video avalability
-    video.check_availability()
+    videoobj.check_availability()
     
-    print(f"Video title: '{video.title}' video has length of '{video.length}' seconds") 
+    print(f"Video title: '{videoobj.title}' video has length of '{videoobj.length}' seconds") 
 
-    # add video info to gif_info 
-    gif_info["video link"] = video_url
-    gif_info["video title"] = video.title
-    gif_info["video length"] = convert_sec(video.length)
+    # add video info to vid_info 
+    vid_info["video link:"] = video_url
+    vid_info["video title:"] = videoobj.title
+    vid_info["video length:"] = convert_sec(videoobj.length)
     
     
     # make gif start modal
     gif_start_modal = interactions.Modal(
-        title="Make a gif",
+        title="(gif) Choose Start time",
         custom_id="gif_start",
         components=[interactions.TextInput(
             style=interactions.TextStyleType.SHORT,
@@ -221,22 +248,21 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
 async def modal_response(ctx, start_time: str):
   
   
-  gif_info["start time"] = start_time
+  vid_info["start time:"] = start_time
   
-  # await ctx.send(f"pog {start_time}")
-  
-  create_con_btn("gif_start_con")
-  
+  await ctx.send(content="choose end time", components=create_con_btn("gif_start_con"))
+
   
 
 @bot.component("gif_start_con")
-async def con_res(ctx):
+async def gif_start_con_response(ctx):
+    
     # make gif end modal
     
-    # end_label = str(f'end time (format HH:MM:SS) max: {gif_info.get("video length")} ')
+        # end_label = str(f'end time (format HH:MM:SS) max: {vid_info.get("video length:")} ')
     
     gif_end_modal = interactions.Modal(
-            title="Make a gif",
+            title="(gif) Choose end time",
             custom_id="gif_end",
             components=[interactions.TextInput(
                 style=interactions.TextStyleType.SHORT,
@@ -247,47 +273,102 @@ async def con_res(ctx):
             )],
         )
     
-    await ctx.popup(gif_end)
+    await ctx.popup(gif_end_modal)
     
-    
-    
-  
+
 @bot.modal("gif_end")
 async def modal_response(ctx, end_time: str):
     
   
-  gif_info["end time"] = end_time
+  vid_info["end time:"] = end_time
   
-  await ctx.send(f"poggers {end_time}")
-  
-  '''
-  #make gif_info embed
-  embed = discord.Embed(title='Confirm Options', description='Are these correct?')
-  for x, y in gif_info.items():
-      embed.add_field(name=str(x) , value=str(y), inline=False)
-   
-  #create y/n buttons
-  ybutton = interactions.Button(
-      style=interactions.ButtonStyle.SUCCESS,
-      label="Yes",
-      custom_id="good_confirm",
-  )
-  
-  nbutton = interactions.Button(
-      style=interactions.ButtonStyle.DANGER,
-      label="No",
-      custom_id="bad_confirm",
-  )
-  
-  row = interactions.ActionRow.new(ybutton, nbutton)
-  
-  # send embed and buttons
-  await ctx.send(embeds=embed, components=row)
-  '''
-  
+  await ctx.send(content="choose stream quality", components=create_con_btn("gif_end_con"))
   
   
 
+@bot.component("gif_end_con")
+async def gif_end_con_response(ctx):
+       
+    
+    # make gif quality Selectmenu
+    
+    video_streams = videoobj.streams.filter(only_video=True, file_extension="webm")
+
+    print("Avalible streams:")
+    print(video_streams)
+    print(f"type: {type(video_streams)}")
+    
+    res_itag = {}
+    for e in video_streams:
+        res_itag[video_streams.res] = e.itag
+            
+            
+    for y, z in res_itag.items():
+        Menu = interactions.SelectMenu(
+            options=[
+                interactions.SelectOption(
+                label=y,
+                value=z,
+                )
+            ],
+            placeholder="Check out these things",
+            custom_id="select_qual",
+        )
+
+    await ctx.send(components=Menu)
+    
+  
+@bot.component("select_qual")
+async def select_qual_res(ctx, response: str):
+    
+    
+    vid_info["itag:"] = response
+    vid_info["resolution:"] = videoobj.get_by_itag(response).res
+    
+    
+    await ctx.edit(content="Final confirm", components=create_con_btn("gif_qual"))
+    
+    
+
+@bot.component("gif_qual")
+async def final_confirm(ctx):
+    #make vid_info embed
+    
+    info_embed = interactions.Embed(title='Confirm Options', description='Are these correct?')
+    for x, y in vid_info.items():
+        info_embed.add_field(name=str(x) , value=str(y), inline=False)
+   
+
+    #create y/n buttons
+    ybutton = interactions.Button(
+        style=interactions.ButtonStyle.SUCCESS,
+        label="Yes",
+        custom_id="good_confirm",
+    )
+    
+    nbutton = interactions.Button(
+        style=interactions.ButtonStyle.DANGER,
+        label="No",
+        custom_id="bad_confirm",
+    )
+    
+    row = interactions.ActionRow.new(ybutton, nbutton)
+    
+    # send embed and buttons
+    await ctx.send(embeds=info_embed, components=row) 
+
+
+@bot.component("good_confirm")
+async def good_confirm_res(ctx):
+    await ctx.disable_all_components()
+    await ctx.reply("Processing video now")
+    
+@bot.component("bad_confirm")
+async def bad_confirm_res(ctx):
+    await ctx.disable_all_components()
+    await ctx.send("Command Canceled, please run it again")
+  
+  
 
 @gif.error
 async def gif_error(ctx: interactions.CommandContext, error: Exception):
@@ -312,4 +393,5 @@ async def webm(ctx: interactions.CommandContext, webm_link: str):
 
 
 bot.start()
+
 
