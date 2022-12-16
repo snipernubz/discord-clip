@@ -291,6 +291,7 @@ async def modal_response(ctx, end_time: str):
 @bot.component("gif_end_con")
 async def gif_end_con_response(ctx):
        
+    print("Selecting quality")
     
     # make gif quality Selectmenu
     
@@ -323,10 +324,13 @@ async def gif_end_con_response(ctx):
     streamlog.write("res_itag dict\n")
     streamlog.write(f"{res_itag}\n")
     
-              
+    streamlog.write("Selectoptions: \n")
+    streamlog.write("label, value \n")
+    
+    Selectopt = []
     for y, z in res_itag.items():
-        streamlog.write()
-        Selectopt = [interactions.SelectOption(label=y, value=z)]
+        streamlog.write(f"{y} , {z} \n")
+        Selectopt.append(interactions.SelectOption(label=y, value=z))
     
     streamlog.write("Selectopt type: {type(Selectopt)}\n")
     streamlog.write("List of SelectOptions\n")
@@ -345,15 +349,13 @@ async def gif_end_con_response(ctx):
 @bot.component("select_qual")
 async def select_qual_res(ctx, response: str):
     
+    print("Quality Selected")
+    print(response)
+    print(type(response))
     
-    vid_info["itag:"] = response
+    vid_info["resolution:"] = videoobj.streams.get_by_itag(int(response[0])).resolution
     
-    # list out keys and values separately
-    key_list = list(res_itag.keys())
-    val_list = list(res_itag.values())
-    position = val_list.index(response)
-    
-    vid_info["resolution:"] = key_list[position]
+    vid_info["itag:"] = response[0]
     
     
     await ctx.edit(content="Final confirm", components=create_con_btn("gif_qual"))
@@ -391,7 +393,8 @@ async def final_confirm(ctx):
 @bot.component("good_confirm")
 async def good_confirm_res(ctx):
     await ctx.disable_all_components()
-    await ctx.reply("Processing video now")
+    await ctx.send("Processing video now")
+    await ctx.defer()
     
 @bot.component("bad_confirm")
 async def bad_confirm_res(ctx):
