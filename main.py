@@ -202,6 +202,7 @@ async def make(ctx: interactions.CommandContext):
 #make gif command
 
 vid_info = {}
+res_itag = {}
 
 @make.subcommand()
 @interactions.option()
@@ -282,8 +283,9 @@ async def modal_response(ctx, end_time: str):
   
   vid_info["end time:"] = end_time
   
+  # had to defer it because of delay due to logging
   await ctx.send(content="choose stream quality", components=create_con_btn("gif_end_con"))
-  
+  await ctx.defer()
   
 
 @bot.component("gif_end_con")
@@ -294,36 +296,64 @@ async def gif_end_con_response(ctx):
     
     video_streams = videoobj.streams.filter(only_video=True, file_extension="webm")
 
-    print("Avalible streams:")
+    print("Avalible streams (filtered):")
     print(video_streams)
     print(f"type: {type(video_streams)}")
     
-    res_itag = {}
-    for e in video_streams:
-        res_itag[video_streams.res] = e.itag
-            
-            
+    
+    streamlog = open("stream_info.log", "a")
+    
+    streamlog.write(f"filtered type: {type(video_streams)} \n")
+    streamlog.write("filtered stream list \n")
+    streamlog.write(f"{str(video_streams)} \n")
+    
+    streamlog.write("Avalabile resolutions (filtered) \n")
+    for s in video_streams:
+        streamlog.write(f"type: {type(s)} \n")
+        streamlog.write(f"res: {s.resolution} \n")
+        
+    streamlog.write("Avalabile itags (filtered) \n")
+    for s in video_streams:
+        streamlog.write(f"type: {type(s)} \n")
+        streamlog.write(f"res: {s.itag} \n")
+        
+    for x in video_streams:
+        res_itag[x.resolution] = x.itag
+        
+    streamlog.write("res_itag dict\n")
+    streamlog.write(f"{res_itag}\n")
+    
+              
     for y, z in res_itag.items():
-        Menu = interactions.SelectMenu(
-            options=[
-                interactions.SelectOption(
-                label=y,
-                value=z,
-                )
-            ],
+        streamlog.write()
+        Selectopt = [interactions.SelectOption(label=y, value=z)]
+    
+    streamlog.write("Selectopt type: {type(Selectopt)}\n")
+    streamlog.write("List of SelectOptions\n")
+    streamlog.write(f"{Selectopt}\n")
+    
+    Menu = interactions.SelectMenu(
             placeholder="Check out these things",
             custom_id="select_qual",
+            options=Selectopt,
+            
         )
-
-    await ctx.send(components=Menu)
     
+    await ctx.send(components=Menu)
+    streamlog.close()
   
 @bot.component("select_qual")
 async def select_qual_res(ctx, response: str):
     
     
     vid_info["itag:"] = response
-    vid_info["resolution:"] = videoobj.get_by_itag(response).res
+    
+    # list out keys and values separately
+    key_list = list(res_itag.keys())
+    val_list = list(res_itag.values())
+    position = val_list.index(response)
+    
+    vid_info["resolution:"] = key_list[position]
     
     
     await ctx.edit(content="Final confirm", components=create_con_btn("gif_qual"))
