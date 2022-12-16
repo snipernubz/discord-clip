@@ -151,21 +151,49 @@ async def select_test(ctx):
 async def select_res(ctx, res: str):
     await ctx.edit(f"You chose {str(res)} from the SelectMenu", components="")
     
-# real commmands  
+################# actual commands  #####################
+
+ # functions to help with varying tasks
 
 def convert_sec(sec):
-    """Get time from seconds"""
+    """
+    Converts Seconds into a HH:MM:SS format
+    Args:
+        sec (string): Time in Seconds
+
+    Returns:
+        string : Time in HH:MM:SS format
+    """
+    
     td = timedelta(seconds = sec)
     return str(td)
   
-def convert_hms(time_str):
-    """Get seconds from time."""
-    h, m, s = time_str.split(':')
+def convert_hms(time):
+    """
+    Converts HH:MM:SS into Seconds
+
+    Args:
+        time (string): HH:MM:SS string
+
+    Returns:
+        string : Time in Seconds
+    """    
+    h, m, s = time.split(':')
     return int(h) * 3600 + int(m) * 60 + int(s)
 
-
+   
 # create continue/abort buttons
 def create_con_btn(inputid):
+    """
+    Creates a Confirm and Abort button
+
+    Args:
+        inputid (str): custom id for confirm button
+
+    Returns:
+        ActionRow: Actionrow containing the Confirm and Abort buttons
+    """    
+    
     fixedid = str(inputid)
     con_button = interactions.Button(
         style=interactions.ButtonStyle.SUCCESS,
@@ -175,7 +203,7 @@ def create_con_btn(inputid):
   
     abr_button = interactions.Button(
         style=interactions.ButtonStyle.DANGER,
-        label="ABORT",
+        label="Abort",
         custom_id="abort",
     )
     
@@ -186,23 +214,36 @@ def create_con_btn(inputid):
 @bot.component("abort")
 async def button2_response(ctx):
     await ctx.send("You chose to abort")
-    
+
+def createSelectOpt(dict):
+    """ Create list of select Options from a dict """
+    Selectopt = []
+    for x, y in dict.items():
+        Selectopt.append(interactions.SelectOption(label=x, value=y))
+    return Selectopt
 
 
 
 # make command
 
+    # functions and Variables specific to the "make" command
+
+vid_info = {}
+res_itag = {}
+download_con = False
+
+def downloadCompleted(stream, path):
+    download_con = True
 
 @bot.command()
+@autodefer(delay=3, ephemeral=True)
 async def make(ctx: interactions.CommandContext):
     """make command"""
     pass
 
 
 #make gif command
-
-vid_info = {}
-res_itag = {}
+    # code for the "make gif" subcommand
 
 @make.subcommand()
 @interactions.option()
@@ -214,7 +255,7 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
     
     video_url = str(gif_link)
     global videoobj 
-    videoobj = YouTube(video_url)
+    videoobj = YouTube(url=video_url, on_complete_callback=downloadCompleted(stream, path))
     
     # check video avalability
     videoobj.check_availability()
@@ -260,14 +301,14 @@ async def gif_start_con_response(ctx):
     
     # make gif end modal
     
-        # end_label = str(f'end time (format HH:MM:SS) max: {vid_info.get("video length:")} ')
+    end_label = str(f'end time MAX: {vid_info.get("video length:").upper()} (format HH:MM:SS)')
     
     gif_end_modal = interactions.Modal(
             title="(gif) Choose end time",
             custom_id="gif_end",
             components=[interactions.TextInput(
                 style=interactions.TextStyleType.SHORT,
-                label="end time (format HH:MM:SS)",
+                label=end_label,
                 custom_id="gif_end_time",
                 min_length=1,
                 max_length=10,
@@ -280,80 +321,34 @@ async def gif_start_con_response(ctx):
 @bot.modal("gif_end")
 async def modal_response(ctx, end_time: str):
     
-  
-  vid_info["end time:"] = end_time
-  
-  # had to defer it because of delay due to logging
-  await ctx.send(content="choose stream quality", components=create_con_btn("gif_end_con"))
-  await ctx.defer()
-  
-
-@bot.component("gif_end_con")
-async def gif_end_con_response(ctx):
-       
-    print("Selecting quality")
+    vid_info["end time:"] = end_time
     
     # make gif quality Selectmenu
     
     video_streams = videoobj.streams.filter(only_video=True, file_extension="webm")
 
-    print("Avalible streams (filtered):")
-    print(video_streams)
-    print(f"type: {type(video_streams)}")
     
-    
-    streamlog = open("stream_info.log", "a")
-    
-    streamlog.write(f"filtered type: {type(video_streams)} \n")
-    streamlog.write("filtered stream list \n")
-    streamlog.write(f"{str(video_streams)} \n")
-    
-    streamlog.write("Avalabile resolutions (filtered) \n")
-    for s in video_streams:
-        streamlog.write(f"type: {type(s)} \n")
-        streamlog.write(f"res: {s.resolution} \n")
-        
-    streamlog.write("Avalabile itags (filtered) \n")
-    for s in video_streams:
-        streamlog.write(f"type: {type(s)} \n")
-        streamlog.write(f"res: {s.itag} \n")
-        
     for x in video_streams:
         res_itag[x.resolution] = x.itag
-        
-    streamlog.write("res_itag dict\n")
-    streamlog.write(f"{res_itag}\n")
     
-    streamlog.write("Selectoptions: \n")
-    streamlog.write("label, value \n")
-    
-    Selectopt = []
-    for y, z in res_itag.items():
-        streamlog.write(f"{y} , {z} \n")
-        Selectopt.append(interactions.SelectOption(label=y, value=z))
-    
-    streamlog.write("Selectopt type: {type(Selectopt)}\n")
-    streamlog.write("List of SelectOptions\n")
-    streamlog.write(f"{Selectopt}\n")
     
     Menu = interactions.SelectMenu(
             placeholder="Check out these things",
             custom_id="select_qual",
-            options=Selectopt,
+            options=createSelectOpt(res_itag),
             
         )
     
     await ctx.send(components=Menu)
-    streamlog.close()
+
   
 @bot.component("select_qual")
 async def select_qual_res(ctx, response: str):
     
-    print("Quality Selected")
-    print(response)
-    print(type(response))
     
     vid_info["resolution:"] = videoobj.streams.get_by_itag(int(response[0])).resolution
+    
+    vid_info["approx size:"] = videoobj.streams.get_by_itag(int(response[0])).filesize_mb
     
     vid_info["itag:"] = response[0]
     
@@ -364,13 +359,13 @@ async def select_qual_res(ctx, response: str):
 
 @bot.component("gif_qual")
 async def final_confirm(ctx):
+    
     #make vid_info embed
     
     info_embed = interactions.Embed(title='Confirm Options', description='Are these correct?')
     for x, y in vid_info.items():
         info_embed.add_field(name=str(x) , value=str(y), inline=False)
    
-
     #create y/n buttons
     ybutton = interactions.Button(
         style=interactions.ButtonStyle.SUCCESS,
@@ -393,8 +388,19 @@ async def final_confirm(ctx):
 @bot.component("good_confirm")
 async def good_confirm_res(ctx):
     await ctx.disable_all_components()
-    await ctx.send("Processing video now")
-    await ctx.defer()
+    await ctx.send("Downloading video now")
+    
+    # download the video
+    print("downlading the video")
+    videopath = videoobj.streams.get_by_itag(int(vid_info["itag:"])).download(filename=ytvid_gif)
+    if download_con == True:
+        print("Video Downloaded")
+        await ctx.edit("Video Downloaded \n Beginning the clipping process")
+    
+    # moviepy shit
+    
+    #vidClip = VideoFileClip
+    
     
 @bot.component("bad_confirm")
 async def bad_confirm_res(ctx):
