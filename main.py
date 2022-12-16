@@ -150,7 +150,165 @@ async def select_test(ctx):
 @bot.component("select_test")
 async def select_res(ctx, res: str):
     await ctx.edit(f"You chose {str(res)} from the SelectMenu", components="")
+
+
+@bot.command(
+    name="relay_adv",
+    description="a advanced relay command",
+    options = [
+        interactions.Option(
+            type=interactions.OptionType.STRING, 
+            name="string", 
+            description="string to relay", 
+            required=True
+        ),
+        interactions.Option(
+            type=interactions.OptionType.STRING, 
+            name="style", 
+            description="relay style", 
+            choices=[interactions.Choice(
+                    name="bold", 
+                    value="**"
+                    ), 
+                    interactions.Choice(
+                        name="italic", 
+                        value="*"
+                    ), 
+                    interactions.Choice(
+                    name="strikethrough", 
+                    value="~~"
+                    )], 
+            required=False,
+        )],
+)
+  
+# @bot.commmand()
+# @interactions.options(type=interactions.OptionType.STRING, name="string", description="string to relay", required=True)
+# @interactions.options(type=interactions.OptionType.STRING, name="style", description="relay style", choices=[interaction.Choice(name="bold", value="**"), interactions.Choice(name="italic", value="*")], interactions.Choice(name="strikethrough", value="~~"), required=False)
+
+
+async def relay_adv(ctx, string: str, style: str):
+    await ctx.send(f"{style}{string}{relay}")
     
+
+
+# temp command
+
+'''
+info_vid = {}
+
+@bot.command(
+    name="gif_make",
+    description="make gif but uses options instead of modals",
+    options = [
+        interactions.Option(
+            name="link",
+            description="link to the video",
+            type=interactions.OptionType.STRING,
+            required=True,
+        ),
+        interactions.Option(
+            name="start_time",
+            description="Start time for the clip in HHMMSS format",
+            type=interactions.OptionType.INTEGER,
+            min_value=1,
+            required=True,
+        ),
+        interactions.Option(
+            name="end_time",
+            description="End time for the clip in HHMMSS",
+            type=interactions.OptionType.INTEGER,
+            min_value=1,
+            required=True,
+        ),
+        interactions.Option(
+            name="quality",
+            description="Choose a resolution to use for the base video",
+            type=interactions.OptionType.STRING,
+            choices = [
+                interactions.Choice(
+                name="144p", 
+                value=144
+                ),
+                interactions.Choice(
+                    name="240p",
+                    value=240,
+                ),
+                interactions.Choice(
+                    name="360p",
+                    value=240,
+                ),
+                interactions.Choice(
+                    name="480p",
+                    value=480,
+                ),
+                interactions.Choice(
+                    name="720p",
+                    value=720,
+                )
+            ],
+            required=True,
+        ),
+    ],
+)
+
+@bot.command()
+@interactions.options(name="link", description="link to the video", type=interactions.OptionType.STRING, required=True)
+async def gif_make(ctx, link: str, start_time: int, end_time: int, quality: int):
+    info_vid["link:"] = link
+    info_vid["start_time:"] = start_time
+    info_vid["end_time:"] = end_time
+    info_vid["quality:"] = quality
+    
+    # create info_vid embed
+    
+    info_embed = interactions.Embed(title='Confirm Options', description='Are these correct?')
+    for x, y in info_vid.items():
+        info_embed.add_field(name=str(x) , value=str(y), inline=False)
+        
+    #create y/n buttons
+    ybutton = interactions.Button(
+        style=interactions.ButtonStyle.SUCCESS,
+        label="Yes",
+        custom_id="tempgood_confirm",
+    )
+    
+    nbutton = interactions.Button(
+        style=interactions.ButtonStyle.DANGER,
+        label="No",
+        custom_id="tempbad_confirm",
+    )
+    
+    row = interactions.ActionRow.new(ybutton, nbutton)
+    
+    # send embed and buttons
+    await ctx.send(embeds=info_embed, components=row) 
+
+@bot.component("tempgood_confirm")
+async def good_confirm_res(ctx):
+    ctx.send("Doing shit, (not really)")
+    
+    opt_embed=interactions.Embed(title="i dont like this method because i:")
+    opt_embed.add_field(name="cant check if the link is valid and avalabile", value="therefore i cant warn while the command is being typed", inline=True)
+    opt_embed.add_field(name="cant dynamically change the end_time description", value="so i cant have it show the length of the given video", inline=True)
+    opt_embed.add_field(name="If anythings is wrong ", value="Everything stops and the command has to be retyped", inline=True)
+
+    ctx.reply(embeds=opt_embed)
+    
+    
+@bot.component("tempbad_confirm")
+async def bad_confirm_res(ctx):
+    ctx.send("Stopping shit")
+    
+    opt_embed=interactions.Embed(title="i dont like this method because i:")
+    opt_embed.add_field(name="cant check if the link is valid and avalabile", value="therefore i cant warn while the command is being typed", inline=True)
+    opt_embed.add_field(name="cant dynamically change the end_time description", value="so i cant have it show the length of the given video", inline=True)
+    opt_embed.add_field(name="If anythings is wrong ", value="Everything stops and the command has to be retyped", inline=True)
+
+    ctx.reply(embeds=opt_embed)
+
+'''
+
 ################# actual commands  #####################
 
  # functions to help with varying tasks
@@ -236,7 +394,6 @@ def downloadCompleted(stream, path):
     download_con = True
 
 @bot.command()
-@autodefer(delay=3, ephemeral=True)
 async def make(ctx: interactions.CommandContext):
     """make command"""
     pass
@@ -384,12 +541,18 @@ async def final_confirm(ctx):
     # send embed and buttons
     await ctx.send(embeds=info_embed, components=row) 
 
+mod_embed=interactions.Embed(title="Why i dont like this method")
+mod_embed.add_field(name="Its very clunky and messy", value="on the code side", inline=False)
+mod_embed.add_field(name="Have to have a confirm button after every modal", value=" in order to send the next modal", inline=True)
+mod_embed.add_field(name="Unable to change values", value="before you get to the final confirm", inline=True)
 
 @bot.component("good_confirm")
 async def good_confirm_res(ctx):
     await ctx.disable_all_components()
     await ctx.send("Downloading video now")
+    await ctx.reply(embeds=mod_embed)
     
+    '''
     # download the video
     print("downlading the video")
     videopath = videoobj.streams.get_by_itag(int(vid_info["itag:"])).download(filename=ytvid_gif)
@@ -400,13 +563,14 @@ async def good_confirm_res(ctx):
     # moviepy shit
     
     #vidClip = VideoFileClip
+    '''
     
     
 @bot.component("bad_confirm")
 async def bad_confirm_res(ctx):
     await ctx.disable_all_components()
     await ctx.send("Command Canceled, please run it again")
-  
+    await ctx.reply(embeds=mod_embed)
   
 
 @gif.error
