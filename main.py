@@ -1,7 +1,7 @@
 import json
 import interactions
 import asyncio
-import moviepy
+from moviepy.editor import *
 from pytube import YouTube
 from datetime import timedelta
 import tracemalloc
@@ -221,9 +221,8 @@ def convert_hms(time):
     Returns:
         string : Time in Seconds
     """    
-    h, m, s = time.split(':')
-    return int(h) * 3600 + int(m) * 60 + int(s)
-
+    secs = sum(int(x) * 60 ** i for i, x in enumerate(reversed(time.split(':'))))
+    return secs 
    
 # create continue/abort buttons
 def create_con_btn(inputid):
@@ -470,15 +469,21 @@ async def good_confirm_res(ctx):
         await ctx.send(f"Percent {dp}%")
         asyncio.sleep(0.5)
     await ctx.send("Video Downloaded \n Beginning the clipping process")
+    
     await ctx.defer(edit_origin=True)
     
     # moviepy shit
     
     vidClip = VideoFileClip("yt_vid.webm")
     print("loaded video")
-    modClip = vidClip.subclip(convert_hms(vid_info["start_time"]), convert_hms(vid_info["end_time"]))
+    modClip = vidClip.subclip(convert_hms(vid_info["start time:"]), convert_hms(vid_info["end time:"]))
     print("Extracted clip")
+    modClip.write_gif(filename="./result_optp.gif",program="ImageMagick",opt='optimizeplus')
+    print('optimizeplus gif made')
+    modClip.write_gif(filename="./result_optt.gif",program="ImageMagick",opt='OptimizeTransparency')
+    print('OptimizeTransparency gif made')
     
+    await ctx.send("gifs made \n All Done!")
     
 @bot.component("bad_confirm")
 async def bad_confirm_res(ctx):
@@ -496,6 +501,7 @@ async def gif_error(ctx: interactions.CommandContext, error: Exception):
     
     
 
+########## make webm commmand ##########
 
 @make.subcommand()
 @interactions.option()
