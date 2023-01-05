@@ -192,122 +192,6 @@ async def relay_adv(ctx, string: str, style: str):
     
 
 
-# temp command
-
-'''
-info_vid = {}
-
-@bot.command(
-    name="gif_make",
-    description="make gif but uses options instead of modals",
-    options = [
-        interactions.Option(
-            name="link",
-            description="link to the video",
-            type=interactions.OptionType.STRING,
-            required=True,
-        ),
-        interactions.Option(
-            name="start_time",
-            description="Start time for the clip in HHMMSS format",
-            type=interactions.OptionType.INTEGER,
-            min_value=1,
-            required=True,
-        ),
-        interactions.Option(
-            name="end_time",
-            description="End time for the clip in HHMMSS",
-            type=interactions.OptionType.INTEGER,
-            min_value=1,
-            required=True,
-        ),
-        interactions.Option(
-            name="quality",
-            description="Choose a resolution to use for the base video",
-            type=interactions.OptionType.STRING,
-            choices = [
-                interactions.Choice(
-                name="144p", 
-                value=144
-                ),
-                interactions.Choice(
-                    name="240p",
-                    value=240,
-                ),
-                interactions.Choice(
-                    name="360p",
-                    value=240,
-                ),
-                interactions.Choice(
-                    name="480p",
-                    value=480,
-                ),
-                interactions.Choice(
-                    name="720p",
-                    value=720,
-                )
-            ],
-            required=True,
-        ),
-    ],
-)
-
-@bot.command()
-@interactions.options(name="link", description="link to the video", type=interactions.OptionType.STRING, required=True)
-async def gif_make(ctx, link: str, start_time: int, end_time: int, quality: int):
-    info_vid["link:"] = link
-    info_vid["start_time:"] = start_time
-    info_vid["end_time:"] = end_time
-    info_vid["quality:"] = quality
-    
-    # create info_vid embed
-    
-    info_embed = interactions.Embed(title='Confirm Options', description='Are these correct?')
-    for x, y in info_vid.items():
-        info_embed.add_field(name=str(x) , value=str(y), inline=False)
-        
-    #create y/n buttons
-    ybutton = interactions.Button(
-        style=interactions.ButtonStyle.SUCCESS,
-        label="Yes",
-        custom_id="tempgood_confirm",
-    )
-    
-    nbutton = interactions.Button(
-        style=interactions.ButtonStyle.DANGER,
-        label="No",
-        custom_id="tempbad_confirm",
-    )
-    
-    row = interactions.ActionRow.new(ybutton, nbutton)
-    
-    # send embed and buttons
-    await ctx.send(embeds=info_embed, components=row) 
-
-@bot.component("tempgood_confirm")
-async def good_confirm_res(ctx):
-    ctx.send("Doing shit, (not really)")
-    
-    opt_embed=interactions.Embed(title="i dont like this method because i:")
-    opt_embed.add_field(name="cant check if the link is valid and avalabile", value="therefore i cant warn while the command is being typed", inline=True)
-    opt_embed.add_field(name="cant dynamically change the end_time description", value="so i cant have it show the length of the given video", inline=True)
-    opt_embed.add_field(name="If anythings is wrong ", value="Everything stops and the command has to be retyped", inline=True)
-
-    ctx.reply(embeds=opt_embed)
-    
-    
-@bot.component("tempbad_confirm")
-async def bad_confirm_res(ctx):
-    ctx.send("Stopping shit")
-    
-    opt_embed=interactions.Embed(title="i dont like this method because i:")
-    opt_embed.add_field(name="cant check if the link is valid and avalabile", value="therefore i cant warn while the command is being typed", inline=True)
-    opt_embed.add_field(name="cant dynamically change the end_time description", value="so i cant have it show the length of the given video", inline=True)
-    opt_embed.add_field(name="If anythings is wrong ", value="Everything stops and the command has to be retyped", inline=True)
-
-    ctx.reply(embeds=opt_embed)
-
-'''
 
 ################# actual commands  #####################
 
@@ -389,9 +273,20 @@ def createSelectOpt(dict):
 vid_info = {}
 res_itag = {}
 download_con = False
-
-def downloadCompleted(stream, path):
+dp = 0
+def downloadCompleted():
+    print("downloadCompleted was called")
     download_con = True
+    
+def downloadProgress(s, chunk, bytes_remaining):
+    print("download progress was called")
+    size = s.filesize
+    bytes_downloaded = size - bytes_remaining
+    download_percent = bytes_downloaded / size * 100
+    dp = int(download_percent)
+    print(f"dp is now {dp}%")
+
+
 
 @bot.command()
 async def make(ctx: interactions.CommandContext):
@@ -412,7 +307,10 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
     
     video_url = str(gif_link)
     global videoobj 
-    videoobj = YouTube(url=video_url, on_complete_callback=downloadCompleted(stream, path))
+    
+    # need to fix progres call backs 
+    # https://github.com/pytube/pytube/issues/862#issuecomment-740014886
+    videoobj = YouTube(url=video_url, on_progress_callback=downloadProgress, on_complete_callback=downloadCompleted())
     
     # check video avalability
     videoobj.check_availability()
@@ -505,7 +403,7 @@ async def select_qual_res(ctx, response: str):
     
     vid_info["resolution:"] = videoobj.streams.get_by_itag(int(response[0])).resolution
     
-    vid_info["approx size:"] = videoobj.streams.get_by_itag(int(response[0])).filesize_mb
+    #vid_info["approx size:"] = videoobj.streams.get_by_itag(int(response[0])).filesize_mb
     
     vid_info["itag:"] = response[0]
     
@@ -541,29 +439,41 @@ async def final_confirm(ctx):
     # send embed and buttons
     await ctx.send(embeds=info_embed, components=row) 
 
+'''
 mod_embed=interactions.Embed(title="Why i dont like this method")
 mod_embed.add_field(name="Its very clunky and messy", value="on the code side", inline=False)
 mod_embed.add_field(name="Have to have a confirm button after every modal", value=" in order to send the next modal", inline=True)
 mod_embed.add_field(name="Unable to change values", value="before you get to the final confirm", inline=True)
 
+opt_embed=interactions.Embed(title="i dont want to use options because i:")
+opt_embed.add_field(name="cant check if the link is valid and avalabile", value="therefore i cant warn while the command is being typed", inline=True)
+opt_embed.add_field(name="cant dynamically change the end_time description", value="so i cant have it show the length of the given video", inline=True)
+opt_embed.add_field(name="If anythings is wrong ", value="Everything stops and the command has to be retyped", inline=True)
+'''
+
 @bot.component("good_confirm")
 async def good_confirm_res(ctx):
     await ctx.disable_all_components()
-    await ctx.send("Downloading video now")
-    await ctx.reply(embeds=mod_embed)
+    await ctx.send("Downloading the video \n Please be patient ")
     
-    '''
+    #await ctx.send(embeds=mod_embed)
+    #await ctx.send(embeds=opt_embed)
+    
+    
     # download the video
+    videostream = videoobj.streams.get_by_itag(int(vid_info["itag:"]))
     print("downlading the video")
-    videopath = videoobj.streams.get_by_itag(int(vid_info["itag:"])).download(filename=ytvid_gif)
-    if download_con == True:
-        print("Video Downloaded")
-        await ctx.edit("Video Downloaded \n Beginning the clipping process")
+    videostream.download()
+    
+    while dp != 0:
+        await ctx.send(f"Percent {dp}%")
+        sleep()
+    await ctx.send("Video Downloaded \n Beginning the clipping process")
     
     # moviepy shit
     
     #vidClip = VideoFileClip
-    '''
+    
     
     
 @bot.component("bad_confirm")
@@ -571,12 +481,14 @@ async def bad_confirm_res(ctx):
     await ctx.disable_all_components()
     await ctx.send("Command Canceled, please run it again")
     await ctx.reply(embeds=mod_embed)
+    await ctx.send(embeds=opt_embed)
   
 
 @gif.error
 async def gif_error(ctx: interactions.CommandContext, error: Exception):
-    print(f"ERROR: {error}")
-    await ctx.send(f"ERROR: {error}")
+    err = str(error)
+    print(f"ERROR: {err}")
+    await ctx.send(f"ERROR: {err}")
     
     
 
