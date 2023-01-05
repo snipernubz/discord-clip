@@ -1,5 +1,6 @@
 import json
 import interactions
+import asyncio
 import moviepy
 from pytube import YouTube
 from datetime import timedelta
@@ -308,7 +309,7 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
     video_url = str(gif_link)
     global videoobj 
     
-    # need to fix progres call backs 
+    # (FIXED?) need to fix progres call backs 
     # https://github.com/pytube/pytube/issues/862#issuecomment-740014886
     videoobj = YouTube(url=video_url, on_progress_callback=downloadProgress, on_complete_callback=downloadCompleted())
     
@@ -463,17 +464,20 @@ async def good_confirm_res(ctx):
     # download the video
     videostream = videoobj.streams.get_by_itag(int(vid_info["itag:"]))
     print("downlading the video")
-    videostream.download()
+    videostream.download(filename="yt_vid.webm")
     
     while dp != 0:
         await ctx.send(f"Percent {dp}%")
-        sleep()
+        asyncio.sleep(0.5)
     await ctx.send("Video Downloaded \n Beginning the clipping process")
+    await ctx.defer(edit_origin=True)
     
     # moviepy shit
     
-    #vidClip = VideoFileClip
-    
+    vidClip = VideoFileClip("yt_vid.webm")
+    print("loaded video")
+    modClip = vidClip.subclip(convert_hms(vid_info["start_time"]), convert_hms(vid_info["end_time"]))
+    print("Extracted clip")
     
     
 @bot.component("bad_confirm")
