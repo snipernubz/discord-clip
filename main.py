@@ -380,15 +380,19 @@ async def modal_response(ctx, end_time: str):
     
     # make clip quality Selectmenu
     
-    video_streams = videoobj.streams.filter(only_video=True, file_extension="webm")
+    pro_streams = video_streams.filter(progressive=True)
+    for x in pro_streams:
+        t = f"{x.resolution} audio: {x.is_progressive}"
+        resaudio_itag[t] = x.itag
+    
+    webm_streams = videoobj.streams.filter(only_video=True, file_extension="webm")
+    for x in webm_streams:
+        t = f"{x.resolution} audio?: {x.is_progressive}"
+        res_itag[t] = x.itag
+    
 
-    
-    for x in video_streams:
-        res_itag[x.resolution] = x.itag
-    
-    
     Menu = interactions.SelectMenu(
-            placeholder="Check out these things",
+            placeholder="Resolution, audio?",
             custom_id="select_qual",
             options=createSelectOpt(res_itag),
             
@@ -439,27 +443,14 @@ async def final_confirm(ctx):
     # send embed and buttons
     await ctx.send(embeds=info_embed, components=row) 
 
-'''
-mod_embed=interactions.Embed(title="Why i dont like this method")
-mod_embed.add_field(name="Its very clunky and messy", value="on the code side", inline=False)
-mod_embed.add_field(name="Have to have a confirm button after every modal", value=" in order to send the next modal", inline=True)
-mod_embed.add_field(name="Unable to change values", value="before you get to the final confirm", inline=True)
 
-opt_embed=interactions.Embed(title="i dont want to use options because i:")
-opt_embed.add_field(name="cant check if the link is valid and avalabile", value="therefore i cant warn while the command is being typed", inline=True)
-opt_embed.add_field(name="cant dynamically change the end_time description", value="so i cant have it show the length of the given video", inline=True)
-opt_embed.add_field(name="If anythings is wrong ", value="Everything stops and the command has to be retyped", inline=True)
-'''
 
 @bot.component("good_confirm")
 async def good_confirm_res(ctx):
     await ctx.disable_all_components()
     await ctx.send("Downloading the video \n Please be patient ")
     
-    #await ctx.send(embeds=mod_embed)
-    #await ctx.send(embeds=opt_embed)
-    
-    
+  
     # download the video
     videostream = videoobj.streams.get_by_itag(int(vid_info["itag:"]))
     print("downlading the video")
@@ -477,10 +468,11 @@ async def good_confirm_res(ctx):
     vidClip = VideoFileClip("yt_vid.webm")
     print("loaded video")
     modClip = vidClip.subclip(vid_info["start time:"], vid_info["end time:"])
+    #send first and last frame of clip to let user confirm correct times
     print("Extracted clip")
-    modClip.
-    
-    await ctx.send("Clip made \n All Done!")
+    modClip.write_videofile(filename="result.webm", preset="slower")
+    await ctx.send("Clip made \n Give me a bit to give it to ya!")
+    await ctx.send(content="Here ya go!", files="result.webm")
     
 @bot.component("bad_confirm")
 async def bad_confirm_res(ctx):
