@@ -295,17 +295,17 @@ async def make(ctx: interactions.CommandContext):
 
 
 #make gif command
-    # code for the "make gif" subcommand
+    # code for the "make clip" subcommand
 
 @make.subcommand()
 @interactions.option()
-async def gif(ctx: interactions.CommandContext, gif_link: str):
-    """Make a gif from a video"""
+async def clip(ctx: interactions.CommandContext, clip_link: str):
+    """Make a clip from a video"""
     
     
-    print(f"Link: {gif_link}")
+    print(f"Link: {clip_link}")
     
-    video_url = str(gif_link)
+    video_url = str(clip_link)
     global videoobj 
     
     # (FIXED?) need to fix progres call backs 
@@ -323,62 +323,62 @@ async def gif(ctx: interactions.CommandContext, gif_link: str):
     vid_info["video length:"] = convert_sec(videoobj.length)
     
     
-    # make gif start modal
-    gif_start_modal = interactions.Modal(
-        title="(gif) Choose Start time",
-        custom_id="gif_start",
+    # make clip start modal
+    clip_start_modal = interactions.Modal(
+        title="(clip) Choose Start time",
+        custom_id="clip_start",
         components=[interactions.TextInput(
             style=interactions.TextStyleType.SHORT,
             label="start time (format HH:MM:SS)",
-            custom_id="gif_start_time",
+            custom_id="clip_start_time",
             min_length=1,
             max_length=8,
         )],
     )
     
     # send start modal
-    await ctx.popup(gif_start_modal)
+    await ctx.popup(clip_start_modal)
 
 
 
-@bot.modal("gif_start")
+@bot.modal("clip_start")
 async def modal_response(ctx, start_time: str):
   
   
   vid_info["start time:"] = start_time
   
-  await ctx.send(content="choose end time", components=create_con_btn("gif_start_con"))
+  await ctx.send(content="choose end time", components=create_con_btn("clip_start_con"))
 
   
 
-@bot.component("gif_start_con")
-async def gif_start_con_response(ctx):
+@bot.component("clip_start_con")
+async def clip_start_con_response(ctx):
     
-    # make gif end modal
+    # make clip end modal
     
     end_label = str(f'end time MAX: {vid_info.get("video length:").upper()} (format HH:MM:SS)')
     
-    gif_end_modal = interactions.Modal(
-            title="(gif) Choose end time",
-            custom_id="gif_end",
+    clip_end_modal = interactions.Modal(
+            title="(clip) Choose end time",
+            custom_id="clip_end",
             components=[interactions.TextInput(
                 style=interactions.TextStyleType.SHORT,
                 label=end_label,
-                custom_id="gif_end_time",
+                custom_id="clip_end_time",
                 min_length=1,
                 max_length=10,
             )],
         )
     
-    await ctx.popup(gif_end_modal)
+    await ctx.popup(clip_end_modal)
     
 
-@bot.modal("gif_end")
+@bot.modal("clip_end")
 async def modal_response(ctx, end_time: str):
     
     vid_info["end time:"] = end_time
     
-    # make gif quality Selectmenu
+    # make clip quality Selectmenu
     
     video_streams = videoobj.streams.filter(only_video=True, file_extension="webm")
 
@@ -408,11 +408,11 @@ async def select_qual_res(ctx, response: str):
     vid_info["itag:"] = response[0]
     
     
-    await ctx.edit(content="Final confirm", components=create_con_btn("gif_qual"))
+    await ctx.edit(content="Final confirm", components=create_con_btn("clip_qual"))
     
     
 
-@bot.component("gif_qual")
+@bot.component("clip_qual")
 async def final_confirm(ctx):
     
     #make vid_info embed
@@ -476,14 +476,11 @@ async def good_confirm_res(ctx):
     
     vidClip = VideoFileClip("yt_vid.webm")
     print("loaded video")
-    modClip = vidClip.subclip(convert_hms(vid_info["start time:"]), convert_hms(vid_info["end time:"]))
+    modClip = vidClip.subclip(vid_info["start time:"], vid_info["end time:"])
     print("Extracted clip")
-    modClip.write_gif(filename="./result_optp.gif",program="ImageMagick",opt='optimizeplus')
-    print('optimizeplus gif made')
-    modClip.write_gif(filename="./result_optt.gif",program="ImageMagick",opt='OptimizeTransparency')
-    print('OptimizeTransparency gif made')
+    modClip.
     
-    await ctx.send("gifs made \n All Done!")
+    await ctx.send("Clip made \n All Done!")
     
 @bot.component("bad_confirm")
 async def bad_confirm_res(ctx):
@@ -493,28 +490,13 @@ async def bad_confirm_res(ctx):
     await ctx.send(embeds=opt_embed)
   
 
-@gif.error
-async def gif_error(ctx: interactions.CommandContext, error: Exception):
+@clip.error
+async def clip_error(ctx: interactions.CommandContext, error: Exception):
     err = str(error)
     print(f"ERROR: {err}")
     await ctx.send(f"ERROR: {err}")
     
     
-
-########## make webm commmand ##########
-
-@make.subcommand()
-@interactions.option()
-async def webm(ctx: interactions.CommandContext, webm_link: str):
-    """make a webm from video"""
-    await ctx.send(f"You selected the make webm sub command and chose video {webm_link}")
-
-    webm_modal = interactions.Modal(
-        title="Make a webm",
-        custom_id="webm_model",
-        components=[interactions.TextInput(...)],
-    )
-
 
 
 bot.start()
