@@ -192,12 +192,24 @@ async def relay_adv(ctx, string: str, style: str):
     await ctx.send(f"{style}{string}{relay}")
     
 
-@bot.command("embed_test")
+@bot.command()
 async def embed_test(ctx):
-  embed=discord.Embed(title="Is this correct?", url="https://www.freepnglogos.com/uploads/number-2-png/2-number-png-images-download-picture-23.png", description="Starting frame")
-  embed.set_thumbnail(url="https://png.pngtree.com/png-clipart/20210309/original/pngtree-black-colorful-number-1-png-image_5894181.jpg")
-  await ctx.send(embed=embed)
+  uno_embed = interactions.Embed(title="Is this correct?", description="Starting frame")
+  uno_embed.set_thumbnail(url="https://png.pngtree.com/png-clipart/20210309/original/pngtree-black-colorful-number-1-png-image_5894181.jpg")
+  
+  dos_embed = interactions.Embed(title="Is this correct?", description="Ending frame")
+  dos_embed.set_thumbnail(url="https://icon2.cleanpng.com/20171220/gze/number-2-png-5a3a51043b97f3.2150661415137712682441.jpg")
+  
+  await ctx.send(embeds=[uno_embed,dos_embed])
 
+@bot.command()
+async def file_test(ctx):
+    str_frame = interactions.File("first.png")
+    uno_embed = interactions.Embed(title="Is this correct?", description="Starting frame")
+    end_frame = interactions.File("end.png")
+    channel = ctx.channel
+    await ctx.send(embeds=uno_embed)
+    await channel.send(files=str_frame)
 
 ################# actual commands  #####################
 
@@ -230,28 +242,32 @@ def convert_hms(time):
     return secs 
    
 # create continue/abort buttons
-def create_con_btn(inputid):
+def create_con_btn(conid, contxt = "Continue", badid = "abort", badtxt = "Abort"):
     """
     Creates a Confirm and Abort button
 
     Args:
-        inputid (str): custom id for confirm button
-
+        conid (str): custom id for confirm button
+        contxt (str): custom txt for confirm button
+        badid (str): custom id for abort button
+        badtxt (str): custom txt for abort button
     Returns:
         ActionRow: Actionrow containing the Confirm and Abort buttons
     """    
     
-    fixedid = str(inputid)
+    fixedconid = str(conid)
+    fixedcontxt = str(contxt)
     con_button = interactions.Button(
         style=interactions.ButtonStyle.SUCCESS,
-        label="Continue",
-        custom_id=fixedid,
+        label=fixedcontxt,
+        custom_id=fixedconid,
     )
-  
+    fixedbadid = str(badid)
+    fixedbadtxt = str(badtxt)
     abr_button = interactions.Button(
         style=interactions.ButtonStyle.DANGER,
-        label="Abort",
-        custom_id="abort",
+        label=fixedbadtxt,
+        custom_id=fixedbadid,
     )
     
     
@@ -259,7 +275,7 @@ def create_con_btn(inputid):
     return con_abr_row
  
 @bot.component("abort")
-async def button2_response(ctx):
+async def abr_response(ctx):
     await ctx.send("You chose to abort")
 
 def createSelectOpt(dict):
@@ -384,11 +400,11 @@ async def modal_response(ctx, end_time: str):
     vid_info["end time:"] = end_time
     
     # make clip quality Selectmenu
-    
+    video_streams = videoobj.streams
     pro_streams = video_streams.filter(progressive=True)
     for x in pro_streams:
         t = f"{x.resolution} audio: {x.is_progressive}"
-        resaudio_itag[t] = x.itag
+        res_itag[t] = x.itag
     
     webm_streams = videoobj.streams.filter(only_video=True, file_extension="webm")
     for x in webm_streams:
@@ -443,7 +459,7 @@ async def final_confirm(ctx):
         custom_id="bad_confirm",
     )
     
-    row = interactions.ActionRow.new(ybutton, nbutton)
+    row = create_con_btn("good_confirm","Yes","bad_confirm","No")
     
     # send embed and buttons
     await ctx.send(embeds=info_embed, components=row) 
@@ -464,7 +480,7 @@ async def good_confirm_res(ctx):
     while dp != 0:
         await ctx.send(f"Percent {dp}%")
         asyncio.sleep(0.5)
-    await ctx.send("Video Downloaded \n Beginning the clipping process")
+    await ctx.send("Video Downloaded \n")
     
     await ctx.defer(edit_origin=True)
     
@@ -475,22 +491,95 @@ async def good_confirm_res(ctx):
     vidClip.save_frame("first.png", vid_info["start time:"])
     vidClip.save_frame("end.png", vid_info["end time:"])
     
-    con_frame_embed=discord.Embed(title="Is this correct?", description="is this the correct section?")
+    str_frame = interactions.File("first.png")
+    end_frame = interactions.File("end.png")
     
-
-    modClip = vidClip.subclip(vid_info["start time:"], vid_info["end time:"])
+    str_frame_embed=interactions.Embed(title="Is this the correct section?", description="Starting Frame")
+    str_frame_embed.set_thumbnail(url="attachment://first.png")
+    end_frame_embed=interactions.Embed(title="Is this the correct section?", description="Ending Frame")
+    end_frame_embed.set_thumbnail(url="attachment://end.png")
+    
+    row=create_con_btn("good_sec","Yes","bad_sec","No")
     #send first and last frame of clip to let user confirm correct times
-    print("Extracted clip")
-    modClip.write_videofile(filename="result.webm", preset="slower")
-    await ctx.send("Clip made \n Give me a bit to give it to ya!")
-    await ctx.send(content="Here ya go!", files=interactions.File("result.webm"))
-    
+    channel = ctx.channel
+    await channel.send(files=str_frame)
+    #await ctx.send(embeds=[str_frame_embed, end_frame_embed], files=['first.png', 'end.png'], components=row)
+
 @bot.component("bad_confirm")
 async def bad_confirm_res(ctx):
     await ctx.disable_all_components()
     await ctx.send("Command Canceled, please run it again")
     await ctx.reply(embeds=mod_embed)
     await ctx.send(embeds=opt_embed)
+    
+@bot.component("bad_sec")
+async def bad_sec_response(ctx):
+    # make clip start modal
+    clip_start_modal = interactions.Modal(
+        title="(clip) Choose Start time",
+        custom_id="sec_start",
+        components=[interactions.TextInput(
+            style=interactions.TextStyleType.SHORT,
+            label="start time (format HH:MM:SS)",
+            custom_id="sec_start_time",
+            min_length=1,
+            max_length=8,
+        )],
+    )
+    
+    # send start modal
+    await ctx.popup(clip_start_modal)
+
+
+
+@bot.modal("sec_start")
+async def modal_response(ctx, start_time: str):
+
+  vid_info["start time:"] = start_time
+  
+  await ctx.send(content="choose end time", components=create_con_btn("sec_start_con"))
+
+  
+
+@bot.component("sec_start_con")
+async def sec_start_con_response(ctx):
+    
+    # make clip end modal
+    
+    end_label = str(f'end time MAX: {vid_info.get("video length:").upper()} (format HH:MM:SS)')
+    
+    clip_end_modal = interactions.Modal(
+            title="(clip) Choose end time",
+            custom_id="sec_end",
+            components=[interactions.TextInput(
+                style=interactions.TextStyleType.SHORT,
+                label=end_label,
+                custom_id="sec_end_time",
+                min_length=1,
+                max_length=10,
+            )],
+        )
+    
+    await ctx.popup(clip_end_modal)
+    
+
+@bot.modal("sec_end")
+async def modal_response(ctx, end_time: str):
+    
+    vid_info["end time:"] = end_time
+    row=create_con_button("good_confirm","Continue")
+    await ctx.send(content="Continue to confirm section",components=row)
+
+@bot.component("good_sec")
+async def good_sec_response(ctx):
+    modClip = vidClip.subclip(vid_info["start time:"], vid_info["end time:"])
+    print("Extracted clip")
+    modClip.write_videofile(filename="result.webm", preset="slower")
+    await ctx.send("Clip made \n Give me a bit to give it to ya!")
+    result = interactions.File("result.webm")
+    await ctx.send(content="Here ya go!", files=result)
+    
+
   
 
 @clip.error

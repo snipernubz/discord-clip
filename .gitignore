@@ -2,3 +2,6 @@ config.json
 tempfiles/
 .vscode/
 discordclips-env/*
+*.webm
+*.gif
+*.png
