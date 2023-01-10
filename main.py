@@ -192,6 +192,11 @@ async def relay_adv(ctx, string: str, style: str):
     await ctx.send(f"{style}{string}{relay}")
     
 
+@bot.command("embed_test")
+async def embed_test(ctx):
+  embed=discord.Embed(title="Is this correct?", url="https://www.freepnglogos.com/uploads/number-2-png/2-number-png-images-download-picture-23.png", description="Starting frame")
+  embed.set_thumbnail(url="https://png.pngtree.com/png-clipart/20210309/original/pngtree-black-colorful-number-1-png-image_5894181.jpg")
+  await ctx.send(embed=embed)
 
 
 ################# actual commands  #####################
@@ -467,12 +472,18 @@ async def good_confirm_res(ctx):
     
     vidClip = VideoFileClip("yt_vid.webm")
     print("loaded video")
+    vidClip.save_frame("first.png", vid_info["start time:"])
+    vidClip.save_frame("end.png", vid_info["end time:"])
+    
+    con_frame_embed=discord.Embed(title="Is this correct?", description="is this the correct section?")
+    
+
     modClip = vidClip.subclip(vid_info["start time:"], vid_info["end time:"])
     #send first and last frame of clip to let user confirm correct times
     print("Extracted clip")
     modClip.write_videofile(filename="result.webm", preset="slower")
     await ctx.send("Clip made \n Give me a bit to give it to ya!")
-    await ctx.send(content="Here ya go!", files="result.webm")
+    await ctx.send(content="Here ya go!", files=interactions.File("result.webm"))
     
 @bot.component("bad_confirm")
 async def bad_confirm_res(ctx):
