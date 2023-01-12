@@ -4,6 +4,8 @@ import asyncio
 from moviepy.editor import *
 from pytube import YouTube
 from datetime import timedelta
+
+
 import tracemalloc
 
 tracemalloc.start()
@@ -27,13 +29,13 @@ async def on_start():
 @bot.command()
 async def pog(ctx: interactions.CommandContext):
     """basic ping command"""
-    await ctx.send(f"Ping! {bot.latency}ms")
+    await ctx.send(ephemeral=True, content=f"Ping! {bot.latency}ms")
 
 @bot.command()
 @interactions.option()
 async def relay(ctx: interactions.CommandContext, text: str):
     """relay what u say"""
-    await ctx.send(f"You said '{text}'!")
+    await ctx.send(ephemeral=True, content=f"You said '{text}'!")
     
 @bot.command()
 async def base_sub_test(ctx: interactions.CommandContext):
@@ -44,13 +46,13 @@ async def base_sub_test(ctx: interactions.CommandContext):
 @interactions.option()
 async def sub_uno(ctx: interactions.CommandContext, option: int = None):
     """first sub"""
-    await ctx.send(f"You selected the command_name sub command and put in {option}")
+    await ctx.send(ephemeral=True, content=f"You selected the command_name sub command and put in {option}")
 
 @base_sub_test.subcommand()
 @interactions.option()
 async def sub_dos(ctx: interactions.CommandContext, second_option: str):
     """second sub"""
-    await ctx.send(f"You selected the second_command sub command and put in {second_option}")
+    await ctx.send(ephemeral=True, content=f"You selected the second_command sub command and put in {second_option}")
  
 button = interactions.Button(
     style=interactions.ButtonStyle.PRIMARY,
@@ -68,15 +70,15 @@ row = interactions.ActionRow.new(button, button2)
 @bot.command()
 async def button_test(ctx):
   """a test for buttons"""
-  await ctx.send("testing", components=row)
+  await ctx.send(ephemeral=True, content="testing", components=row)
   
 @bot.component("hello")
 async def button_response(ctx):
-    await ctx.send("Hello user :)", ephemeral=True)
+    await ctx.send(ephemeral=True, content="Hello user :)", ephemeral=True)
     
 @bot.component("bye")
 async def button2_response(ctx):
-    await ctx.send("aww bye bye user :(", ephemeral=True)
+    await ctx.send(ephemeral=True, content="aww bye bye user :(", ephemeral=True)
 
 @bot.command()
 async def modal_test(ctx):
@@ -98,7 +100,7 @@ async def modal_test(ctx):
  
 @bot.modal("mod_form")
 async def modal_response(ctx, response: str):
-    await ctx.send(f"You wrote: {response}", ephemeral=True)
+    await ctx.send(ephemeral=True, content=f"You wrote: {response}", ephemeral=True)
     
 @bot.command()
 async def dual_modal_test(ctx):
@@ -123,7 +125,7 @@ async def dual_modal_test(ctx):
 @bot.modal("dual_modal")
 async def dual_modal_res(ctx, uno: str, sec: str):
     print(f"first input: {uno}, second input: {sec}")   
-    await ctx.send(f"first input: {uno}, second input: {sec}")        
+    await ctx.send(ephemeral=True, content=f"first input: {uno}, second input: {sec}")        
     
     
 @bot.command()
@@ -146,51 +148,12 @@ async def select_test(ctx):
         custom_id="select_test",
     )
     
-    await ctx.send("**Choose!**", components=Menu)
+    await ctx.send(ephemeral=True, content="**Choose!**", components=Menu)
 
 @bot.component("select_test")
 async def select_res(ctx, res: str):
     await ctx.edit(f"You chose {str(res)} from the SelectMenu", components="")
 
-
-@bot.command(
-    name="relay_adv",
-    description="a advanced relay command",
-    options = [
-        interactions.Option(
-            type=interactions.OptionType.STRING, 
-            name="string", 
-            description="string to relay", 
-            required=True
-        ),
-        interactions.Option(
-            type=interactions.OptionType.STRING, 
-            name="style", 
-            description="relay style", 
-            choices=[interactions.Choice(
-                    name="bold", 
-                    value="**"
-                    ), 
-                    interactions.Choice(
-                        name="italic", 
-                        value="*"
-                    ), 
-                    interactions.Choice(
-                    name="strikethrough", 
-                    value="~~"
-                    )], 
-            required=False,
-        )],
-)
-  
-# @bot.commmand()
-# @interactions.options(type=interactions.OptionType.STRING, name="string", description="string to relay", required=True)
-# @interactions.options(type=interactions.OptionType.STRING, name="style", description="relay style", choices=[interaction.Choice(name="bold", value="**"), interactions.Choice(name="italic", value="*")], interactions.Choice(name="strikethrough", value="~~"), required=False)
-
-
-async def relay_adv(ctx, string: str, style: str):
-    await ctx.send(f"{style}{string}{relay}")
-    
 
 @bot.command()
 async def embed_test(ctx):
@@ -200,7 +163,7 @@ async def embed_test(ctx):
   dos_embed = interactions.Embed(title="Is this correct?", description="Ending frame")
   dos_embed.set_thumbnail(url="https://icon2.cleanpng.com/20171220/gze/number-2-png-5a3a51043b97f3.2150661415137712682441.jpg")
   
-  await ctx.send(embeds=[uno_embed,dos_embed])
+  await ctx.send(ephemeral=True, embeds=[uno_embed,dos_embed])
 
 @bot.command()
 async def file_test(ctx):
@@ -208,9 +171,27 @@ async def file_test(ctx):
     uno_embed = interactions.Embed(title="Is this correct?", description="Starting frame")
     end_frame = interactions.File("end.png")
     channel = ctx.channel
-    await ctx.send(embeds=uno_embed)
-    await channel.send(files=str_frame)
-
+    await ctx.send(ephemeral=True, embeds=uno_embed)
+    await channel.send(ephemeral=True, files=str_frame)
+    
+@bot.command()
+async def embed_file_test(ctx):
+    str_frame = interactions.File("first.png")
+    end_frame = interactions.File("end.png")
+    
+    uno_embed = interactions.Embed(title="Is this correct?", description="Starting frame")
+    #uno_embed.set_thumbnail(url="attachment://first.png")
+    dos_embed = interactions.Embed(title="Is this correct?", description="Ending frame")
+    #dos_embed.set_thumbnail(url="attachment://end.png")
+    
+    channel = ctx.channel
+    await channel.send(ephemeral=True, embeds=uno_embed)
+    await channel.send(ephemeral=True, files=str_frame)
+    await channel.send(ephemeral=True, embeds=dos_embed)
+    await channel.send(ephemeral=True, files=end_frame)
+    
+    
+    
 ################# actual commands  #####################
 
  # functions to help with varying tasks
@@ -276,7 +257,7 @@ def create_con_btn(conid, contxt = "Continue", badid = "abort", badtxt = "Abort"
  
 @bot.component("abort")
 async def abr_response(ctx):
-    await ctx.send("You chose to abort")
+    await ctx.send(ephemeral=True, content="You chose to abort")
 
 def createSelectOpt(dict):
     """ Create list of select Options from a dict """
@@ -315,7 +296,7 @@ async def make(ctx: interactions.CommandContext):
     pass
 
 
-#make gif command
+#make command
     # code for the "make clip" subcommand
 
 @make.subcommand()
@@ -329,8 +310,6 @@ async def clip(ctx: interactions.CommandContext, clip_link: str):
     video_url = str(clip_link)
     global videoobj 
     
-    # (FIXED?) need to fix progres call backs 
-    # https://github.com/pytube/pytube/issues/862#issuecomment-740014886
     videoobj = YouTube(url=video_url, on_progress_callback=downloadProgress, on_complete_callback=downloadCompleted())
     
     # check video avalability
@@ -350,7 +329,7 @@ async def clip(ctx: interactions.CommandContext, clip_link: str):
         custom_id="clip_start",
         components=[interactions.TextInput(
             style=interactions.TextStyleType.SHORT,
-            label="start time (format HH:MM:SS)",
+            label="start time (format HH:MM:SS.MS)",
             custom_id="clip_start_time",
             min_length=1,
             max_length=8,
@@ -368,7 +347,7 @@ async def modal_response(ctx, start_time: str):
   
   vid_info["start time:"] = start_time
   
-  await ctx.send(content="choose end time", components=create_con_btn("clip_start_con"))
+  await ctx.send(ephemeral=True, content="choose end time", components=create_con_btn("clip_start_con"))
 
   
 
@@ -377,7 +356,7 @@ async def clip_start_con_response(ctx):
     
     # make clip end modal
     
-    end_label = str(f'end time MAX: {vid_info.get("video length:").upper()} (format HH:MM:SS)')
+    end_label = str(f'end time MAX: {vid_info.get("video length:").upper()} (format HH:MM:SS.MS)')
     
     clip_end_modal = interactions.Modal(
             title="(clip) Choose end time",
@@ -419,7 +398,7 @@ async def modal_response(ctx, end_time: str):
             
         )
     
-    await ctx.send(components=Menu)
+    await ctx.send(ephemeral=True, components=Menu)
 
   
 @bot.component("select_qual")
@@ -462,14 +441,14 @@ async def final_confirm(ctx):
     row = create_con_btn("good_confirm","Yes","bad_confirm","No")
     
     # send embed and buttons
-    await ctx.send(embeds=info_embed, components=row) 
+    await ctx.send(ephemeral=True, embeds=info_embed, components=row) 
 
 
 
 @bot.component("good_confirm")
 async def good_confirm_res(ctx):
-    await ctx.disable_all_components()
-    await ctx.send("Downloading the video \n Please be patient ")
+    #await ctx.disable_all_components()
+    await ctx.send(ephemeral=True, content="Downloading the video \n Please be patient ")
     
   
     # download the video
@@ -478,14 +457,15 @@ async def good_confirm_res(ctx):
     videostream.download(filename="yt_vid.webm")
     
     while dp != 0:
-        await ctx.send(f"Percent {dp}%")
+        await ctx.send(ephemeral=True, content=f"Percent {dp}%")
         asyncio.sleep(0.5)
-    await ctx.send("Video Downloaded \n")
+    await ctx.send(ephemeral=True, content="Video Downloaded \n")
     
     await ctx.defer(edit_origin=True)
     
     # moviepy shit
     
+    global vidClip
     vidClip = VideoFileClip("yt_vid.webm")
     print("loaded video")
     vidClip.save_frame("first.png", vid_info["start time:"])
@@ -495,22 +475,21 @@ async def good_confirm_res(ctx):
     end_frame = interactions.File("end.png")
     
     str_frame_embed=interactions.Embed(title="Is this the correct section?", description="Starting Frame")
-    str_frame_embed.set_thumbnail(url="attachment://first.png")
     end_frame_embed=interactions.Embed(title="Is this the correct section?", description="Ending Frame")
-    end_frame_embed.set_thumbnail(url="attachment://end.png")
     
-    row=create_con_btn("good_sec","Yes","bad_sec","No")
-    #send first and last frame of clip to let user confirm correct times
+    #send first and last frame of clip to let user confirm if correct times
     channel = ctx.channel
-    await channel.send(files=str_frame)
-    #await ctx.send(embeds=[str_frame_embed, end_frame_embed], files=['first.png', 'end.png'], components=row)
-
+    await channel.send(ephemeral=True,  embeds=str_frame_embed)
+    await channel.send(ephemeral=True,  files=str_frame)
+    await channel.send(ephemeral=True,  embeds=end_frame_embed)
+    await channel.send(ephemeral=True,  files=end_frame)
+    row=create_con_btn("good_sec","Yes","bad_sec","No")
+    await ctx.send(ephemeral=True,  components=row)
+    
 @bot.component("bad_confirm")
 async def bad_confirm_res(ctx):
     await ctx.disable_all_components()
-    await ctx.send("Command Canceled, please run it again")
-    await ctx.reply(embeds=mod_embed)
-    await ctx.send(embeds=opt_embed)
+    await ctx.send(ephemeral=True, "Command Canceled, please run it again")
     
 @bot.component("bad_sec")
 async def bad_sec_response(ctx):
@@ -537,7 +516,7 @@ async def modal_response(ctx, start_time: str):
 
   vid_info["start time:"] = start_time
   
-  await ctx.send(content="choose end time", components=create_con_btn("sec_start_con"))
+  await ctx.send(ephemeral=True,  content="choose end time", components=create_con_btn("sec_start_con"))
 
   
 
@@ -567,17 +546,20 @@ async def sec_start_con_response(ctx):
 async def modal_response(ctx, end_time: str):
     
     vid_info["end time:"] = end_time
-    row=create_con_button("good_confirm","Continue")
-    await ctx.send(content="Continue to confirm section",components=row)
+    row=create_con_btn("good_confirm","Continue")
+    await ctx.send(ephemeral=True, content="Continue to confirm section", components=row)
 
 @bot.component("good_sec")
 async def good_sec_response(ctx):
     modClip = vidClip.subclip(vid_info["start time:"], vid_info["end time:"])
     print("Extracted clip")
+    await ctx.send(ephemeral=True, content="Clip made \n Give me a bit to give it to ya!")
+    await ctx.defer(edit_origin=True)
     modClip.write_videofile(filename="result.webm", preset="slower")
-    await ctx.send("Clip made \n Give me a bit to give it to ya!")
+    
     result = interactions.File("result.webm")
-    await ctx.send(content="Here ya go!", files=result)
+    await ctx.send(ephemeral=True, content="Here ya go!")
+    await ctx.channel.send(files=result)
     
 
   
@@ -586,7 +568,7 @@ async def good_sec_response(ctx):
 async def clip_error(ctx: interactions.CommandContext, error: Exception):
     err = str(error)
     print(f"ERROR: {err}")
-    await ctx.send(f"ERROR: {err}")
+    await ctx.send(ephemeral=True, content=f"ERROR: {err}")
     
     
 
