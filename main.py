@@ -4,7 +4,7 @@ import asyncio
 from moviepy.editor import *
 from pytube import YouTube
 from datetime import timedelta
-
+import os 
 
 import tracemalloc
 
@@ -36,7 +36,7 @@ async def pog(ctx: interactions.CommandContext):
 async def relay(ctx: interactions.CommandContext, text: str):
     """relay what u say"""
     await ctx.send(ephemeral=True, content=f"You said '{text}'!")
-    
+    '''
 @bot.command()
 async def base_sub_test(ctx: interactions.CommandContext):
     """This description isn't seen in UI (yet?)"""
@@ -74,11 +74,11 @@ async def button_test(ctx):
   
 @bot.component("hello")
 async def button_response(ctx):
-    await ctx.send(ephemeral=True, content="Hello user :)", ephemeral=True)
+    await ctx.send(ephemeral=True, content="Hello user :)")
     
 @bot.component("bye")
 async def button2_response(ctx):
-    await ctx.send(ephemeral=True, content="aww bye bye user :(", ephemeral=True)
+    await ctx.send(ephemeral=True, content="aww bye bye user :(")
 
 @bot.command()
 async def modal_test(ctx):
@@ -100,7 +100,7 @@ async def modal_test(ctx):
  
 @bot.modal("mod_form")
 async def modal_response(ctx, response: str):
-    await ctx.send(ephemeral=True, content=f"You wrote: {response}", ephemeral=True)
+    await ctx.send(ephemeral=True, content=f"You wrote: {response}")
     
 @bot.command()
 async def dual_modal_test(ctx):
@@ -189,7 +189,7 @@ async def embed_file_test(ctx):
     await channel.send(ephemeral=True, files=str_frame)
     await channel.send(ephemeral=True, embeds=dos_embed)
     await channel.send(ephemeral=True, files=end_frame)
-    
+    '''
     
     
 ################# actual commands  #####################
@@ -485,11 +485,13 @@ async def good_confirm_res(ctx):
     await channel.send(ephemeral=True,  files=end_frame)
     row=create_con_btn("good_sec","Yes","bad_sec","No")
     await ctx.send(ephemeral=True,  components=row)
+    os.remove("first.png")
+    os.remove("end.png")
     
 @bot.component("bad_confirm")
 async def bad_confirm_res(ctx):
     await ctx.disable_all_components()
-    await ctx.send(ephemeral=True, "Command Canceled, please run it again")
+    await ctx.send(ephemeral=True, content="Command Canceled, please run it again")
     
 @bot.component("bad_sec")
 async def bad_sec_response(ctx):
@@ -556,10 +558,11 @@ async def good_sec_response(ctx):
     await ctx.send(ephemeral=True, content="Clip made \n Give me a bit to give it to ya!")
     await ctx.defer(edit_origin=True)
     modClip.write_videofile(filename="result.webm", preset="slower")
-    
+    os.remove('yt_vid.webm')
     result = interactions.File("result.webm")
     await ctx.send(ephemeral=True, content="Here ya go!")
     await ctx.channel.send(files=result)
+    os.remove("result.webm")
     
 
   
