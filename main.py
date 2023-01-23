@@ -31,167 +31,18 @@ async def pog(ctx: interactions.CommandContext):
     """basic ping command"""
     await ctx.send(ephemeral=True, content=f"Ping! {bot.latency}ms")
 
+
 @bot.command()
 @interactions.option()
 async def relay(ctx: interactions.CommandContext, text: str):
     """relay what u say"""
     await ctx.send(ephemeral=True, content=f"You said '{text}'!")
-    '''
-@bot.command()
-async def base_sub_test(ctx: interactions.CommandContext):
-    """This description isn't seen in UI (yet?)"""
-    pass
-
-@base_sub_test.subcommand()
-@interactions.option()
-async def sub_uno(ctx: interactions.CommandContext, option: int = None):
-    """first sub"""
-    await ctx.send(ephemeral=True, content=f"You selected the command_name sub command and put in {option}")
-
-@base_sub_test.subcommand()
-@interactions.option()
-async def sub_dos(ctx: interactions.CommandContext, second_option: str):
-    """second sub"""
-    await ctx.send(ephemeral=True, content=f"You selected the second_command sub command and put in {second_option}")
  
-button = interactions.Button(
-    style=interactions.ButtonStyle.PRIMARY,
-    label="hello bot!",
-    custom_id="hello"
-)
-button2 = interactions.Button(
-    style=interactions.ButtonStyle.SECONDARY,
-    label="bye bot!",
-    custom_id="bye",
-)
-
-row = interactions.ActionRow.new(button, button2)
-
 @bot.command()
-async def button_test(ctx):
-  """a test for buttons"""
-  await ctx.send(ephemeral=True, content="testing", components=row)
-  
-@bot.component("hello")
-async def button_response(ctx):
-    await ctx.send(ephemeral=True, content="Hello user :)")
-    
-@bot.component("bye")
-async def button2_response(ctx):
-    await ctx.send(ephemeral=True, content="aww bye bye user :(")
-
-@bot.command()
-async def modal_test(ctx):
-    """model test command"""
-    
-    modal = interactions.Modal(
-        title="Test Model",
-        custom_id="mod_form",
-        components=[interactions.TextInput(
-            style=interactions.TextStyleType.SHORT,
-            label=" Let's get straight to it: what's 1 + 1? HINT: its 2 jk its 5 dumbass",
-            custom_id="text_input_response",
-            min_length=2,
-            max_length=10,
-                )],
-    )
-
-    await ctx.popup(modal)
- 
-@bot.modal("mod_form")
-async def modal_response(ctx, response: str):
-    await ctx.send(ephemeral=True, content=f"You wrote: {response}")
-    
-@bot.command()
-async def dual_modal_test(ctx):
-    """dual modal test command"""
-    dual_modal = interactions.Modal(
-        title="Poggers",
-        custom_id="dual_modal",
-        components=[interactions.TextInput(
-            style=interactions.TextStyleType.SHORT,
-            label="1st input",
-            custom_id="first_input",
-        ),
-        interactions.TextInput(
-            style=interactions.TextStyleType.SHORT,
-            label="2nd input",
-            custom_id="sec_input",
-        )],
-    )
-
-    await ctx.popup(dual_modal)
-
-@bot.modal("dual_modal")
-async def dual_modal_res(ctx, uno: str, sec: str):
-    print(f"first input: {uno}, second input: {sec}")   
-    await ctx.send(ephemeral=True, content=f"first input: {uno}, second input: {sec}")        
-    
-    
-@bot.command()
-async def select_test(ctx):
-    """ Select Menu Test """
-    Menu = interactions.SelectMenu(
-        options=[
-            interactions.SelectOption(
-                label="opt 1",
-                value="poggers",
-                description="pogging",
-            ),
-            interactions.SelectOption(
-                label="opt 2",
-                value="memeing",
-                description="we memeing",
-            )
-        ],
-        placeholder="Check out these things",
-        custom_id="select_test",
-    )
-    
-    await ctx.send(ephemeral=True, content="**Choose!**", components=Menu)
-
-@bot.component("select_test")
-async def select_res(ctx, res: str):
-    await ctx.edit(f"You chose {str(res)} from the SelectMenu", components="")
-
-
-@bot.command()
-async def embed_test(ctx):
-  uno_embed = interactions.Embed(title="Is this correct?", description="Starting frame")
-  uno_embed.set_thumbnail(url="https://png.pngtree.com/png-clipart/20210309/original/pngtree-black-colorful-number-1-png-image_5894181.jpg")
-  
-  dos_embed = interactions.Embed(title="Is this correct?", description="Ending frame")
-  dos_embed.set_thumbnail(url="https://icon2.cleanpng.com/20171220/gze/number-2-png-5a3a51043b97f3.2150661415137712682441.jpg")
-  
-  await ctx.send(ephemeral=True, embeds=[uno_embed,dos_embed])
-
-@bot.command()
-async def file_test(ctx):
-    str_frame = interactions.File("first.png")
-    uno_embed = interactions.Embed(title="Is this correct?", description="Starting frame")
-    end_frame = interactions.File("end.png")
-    channel = ctx.channel
-    await ctx.send(ephemeral=True, embeds=uno_embed)
-    await channel.send(ephemeral=True, files=str_frame)
-    
-@bot.command()
-async def embed_file_test(ctx):
-    str_frame = interactions.File("first.png")
-    end_frame = interactions.File("end.png")
-    
-    uno_embed = interactions.Embed(title="Is this correct?", description="Starting frame")
-    #uno_embed.set_thumbnail(url="attachment://first.png")
-    dos_embed = interactions.Embed(title="Is this correct?", description="Ending frame")
-    #dos_embed.set_thumbnail(url="attachment://end.png")
-    
-    channel = ctx.channel
-    await channel.send(ephemeral=True, embeds=uno_embed)
-    await channel.send(ephemeral=True, files=str_frame)
-    await channel.send(ephemeral=True, embeds=dos_embed)
-    await channel.send(ephemeral=True, files=end_frame)
-    '''
-    
-    
+async def channel_test(ctx):
+     print(ctx)
+     await ctx.send(content=f"pog")
+     
 ################# actual commands  #####################
 
  # functions to help with varying tasks
@@ -276,6 +127,7 @@ vid_info = {}
 res_itag = {}
 download_con = False
 dp = 0
+
 def downloadCompleted():
     print("downloadCompleted was called")
     download_con = True
@@ -337,6 +189,7 @@ async def clip(ctx: interactions.CommandContext, clip_link: str):
     )
     
     # send start modal
+    
     await ctx.popup(clip_start_modal)
 
 
@@ -347,8 +200,8 @@ async def modal_response(ctx, start_time: str):
   
   vid_info["start time:"] = start_time
   
-  await ctx.send(ephemeral=True, content="choose end time", components=create_con_btn("clip_start_con"))
-
+  await ctx.send(content="choose end time", components=create_con_btn("clip_start_con"))
+  await ctx.get_channel
   
 
 @bot.component("clip_start_con")
