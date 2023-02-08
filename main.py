@@ -193,7 +193,6 @@ async def clip(ctx: interactions.CommandContext, clip_link: str):
     await ctx.popup(clip_start_modal)
 
 
-
 @bot.modal("clip_start")
 async def modal_response(ctx, start_time: str):
   
@@ -201,7 +200,7 @@ async def modal_response(ctx, start_time: str):
   vid_info["start time:"] = start_time
   
   await ctx.send(content="choose end time", components=create_con_btn("clip_start_con"))
-  await ctx.get_channel
+  #await ctx.get_channel
   
 
 @bot.component("clip_start_con")
@@ -251,7 +250,7 @@ async def modal_response(ctx, end_time: str):
             
         )
     
-    await ctx.send(ephemeral=True, components=Menu)
+    await ctx.send(components=Menu)
 
   
 @bot.component("select_qual")
